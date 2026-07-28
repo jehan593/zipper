@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!--
+        Compose draws the app's real UI (see ZipperTheme); these XML themes are only what the
+        manifest/system needs before the first Compose frame, following the Nord Polar Night
+        background.
+    -->
+    <style name="Theme.Zipper" parent="android:Theme.Material.NoActionBar">
+        <item name="android:windowBackground">@color/ic_launcher_background</item>
+        <item name="android:statusBarColor">@color/ic_launcher_background</item>
+    </style>
+
+    <!--
+        ArchivePreviewActivity uses this so the tapped-archive preview renders as a floating
+        dialog-like surface over whatever app (file manager, downloads, etc.) the file was tapped
+        from, instead of a full opaque page transition — it's a transient popup, not a destination
+        screen.
+    -->
+    <style name="Theme.Zipper.Transparent" parent="android:Theme.Material.NoActionBar">
+        <item name="android:windowIsTranslucent">true</item>
+        <item name="android:windowBackground">@android:color/transparent</item>
+        <item name="android:windowNoTitle">true</item>
+        <item name="android:windowAnimationStyle">@android:style/Animation.Dialog</item>
+        <item name="android:backgroundDimEnabled">true</item>
+    </style>
+</resources>

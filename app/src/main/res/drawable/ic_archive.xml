@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Filing box with a slot cut into the lid and a downward arrow ("going into" the archive) —
+     tinted via Icon(tint=...), so fillColor is a plain black placeholder. -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="24dp"
+    android:height="24dp"
+    android:viewportWidth="24"
+    android:viewportHeight="24">
+    <path android:fillColor="#FF000000" android:pathData="M10,0 H14 L12,3 Z" />
+    <path android:fillColor="#FF000000" android:pathData="M3,5 H21 V9 H3 Z" />
+    <path
+        android:fillColor="#FF000000"
+        android:fillType="evenOdd"
+        android:pathData="M4,10 H20 V19 a2,2 0 0,1 -2,2 H6 a2,2 0 0,1 -2,-2 Z M9,13 H15 V15 H9 Z" />
+</vector>
