@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Circle with the exclamation mark cut out (evenOdd), so it reads correctly under any tint. -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="24dp"
+    android:height="24dp"
+    android:viewportWidth="24"
+    android:viewportHeight="24">
+    <path
+        android:fillColor="#FF000000"
+        android:fillType="evenOdd"
+        android:pathData="M12,2 a10,10 0 1,0 0.01,0 Z M11,7 H13 V15 H11 Z M11,17 H13 V19 H11 Z" />
+</vector>

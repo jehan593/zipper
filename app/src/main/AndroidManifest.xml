@@ -1,0 +1,102 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools">
+
+    <!-- No storage/media permissions anywhere: every file the app touches (source files/folders
+         to archive, the archive to extract, the destination folder) is a content:// Uri obtained
+         through the Storage Access Framework picker, never a raw filesystem path. -->
+
+    <application
+        android:name=".ZipperApplication"
+        android:allowBackup="true"
+        android:icon="@mipmap/ic_launcher"
+        android:label="@string/app_name"
+        android:roundIcon="@mipmap/ic_launcher"
+        android:supportsRtl="true"
+        android:theme="@style/Theme.Zipper">
+
+        <activity
+            android:name=".MainActivity"
+            android:exported="true"
+            android:windowSoftInputMode="adjustResize"
+            android:theme="@style/Theme.Zipper">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+
+        <!--
+            Fires when an archive file is tapped anywhere else on the device (file manager,
+            downloads, email attachment, ...): shows a translucent popup with a folder-drill-down
+            preview of the archive's contents plus an Extract action, instead of opening the full
+            app UI. android:taskAffinity="" + excludeFromRecents keeps this a lightweight overlay —
+            same pattern as Linker's LinkInterceptorActivity — rather than switching the whole
+            launcher task to Zipper. Not launchMode="singleTask": each tap gets its own short-lived
+            instance, so there's no onNewIntent plumbing needed to refresh a reused one.
+
+            Two intent-filter blocks are needed because archive mime-types aren't consistently
+            reported: content:// sources (most file managers, Downloads, email attachments) mostly
+            set a correct mimeType but an opaque path with no real extension, so those are matched
+            by mimeType. Plain file:// sources (older file managers, some browsers) often set a
+            generic/absent mimeType but a real path, so those are matched by pathPattern/extension
+            instead. RAR is listed here for preview/extract only — Zipper can extract .rar but,
+            like every other app on Android, cannot create one (proprietary format).
+        -->
+        <activity
+            android:name=".preview.ArchivePreviewActivity"
+            android:exported="true"
+            android:excludeFromRecents="true"
+            android:taskAffinity=""
+            android:theme="@style/Theme.Zipper.Transparent">
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <data android:scheme="content" android:mimeType="application/zip" />
+                <data android:scheme="content" android:mimeType="application/x-zip-compressed" />
+                <data android:scheme="content" android:mimeType="application/x-7z-compressed" />
+                <data android:scheme="content" android:mimeType="application/x-rar-compressed" />
+                <data android:scheme="content" android:mimeType="application/vnd.rar" />
+                <data android:scheme="content" android:mimeType="application/x-tar" />
+                <data android:scheme="content" android:mimeType="application/gzip" />
+                <data android:scheme="content" android:mimeType="application/x-gzip" />
+                <data android:scheme="content" android:mimeType="application/x-compressed-tar" />
+            </intent-filter>
+            <!--
+                Android's pathPattern glob is non-greedy: ".*\\.zip" can fail to match a filename
+                that has any other dot in it (e.g. "my.photos.zip"), since the ".*" stops at the
+                first literal char it can match rather than backtracking to the last dot. Each
+                extension below is repeated with 0/1/2 extra embedded dots to cover that — a known
+                Android limitation (pathSuffix, the exact-match alternative, needs API 31+, above
+                this app's minSdk 26).
+            -->
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <data android:scheme="file" android:host="*" android:pathPattern=".*\\.zip" />
+                <data android:scheme="file" android:host="*" android:pathPattern=".*\\..*\\.zip" />
+                <data android:scheme="file" android:host="*" android:pathPattern=".*\\..*\\..*\\.zip" />
+                <data android:scheme="file" android:host="*" android:pathPattern=".*\\.7z" />
+                <data android:scheme="file" android:host="*" android:pathPattern=".*\\..*\\.7z" />
+                <data android:scheme="file" android:host="*" android:pathPattern=".*\\..*\\..*\\.7z" />
+                <data android:scheme="file" android:host="*" android:pathPattern=".*\\.rar" />
+                <data android:scheme="file" android:host="*" android:pathPattern=".*\\..*\\.rar" />
+                <data android:scheme="file" android:host="*" android:pathPattern=".*\\..*\\..*\\.rar" />
+                <data android:scheme="file" android:host="*" android:pathPattern=".*\\.tar" />
+                <data android:scheme="file" android:host="*" android:pathPattern=".*\\..*\\.tar" />
+                <data android:scheme="file" android:host="*" android:pathPattern=".*\\..*\\..*\\.tar" />
+                <data android:scheme="file" android:host="*" android:pathPattern=".*\\.tar\\.gz" />
+                <data android:scheme="file" android:host="*" android:pathPattern=".*\\..*\\.tar\\.gz" />
+                <data android:scheme="file" android:host="*" android:pathPattern=".*\\..*\\..*\\.tar\\.gz" />
+                <data android:scheme="file" android:host="*" android:pathPattern=".*\\.tgz" />
+                <data android:scheme="file" android:host="*" android:pathPattern=".*\\..*\\.tgz" />
+                <data android:scheme="file" android:host="*" android:pathPattern=".*\\..*\\..*\\.tgz" />
+                <data android:scheme="file" android:host="*" android:pathPattern=".*\\.gz" />
+                <data android:scheme="file" android:host="*" android:pathPattern=".*\\..*\\.gz" />
+                <data android:scheme="file" android:host="*" android:pathPattern=".*\\..*\\..*\\.gz" />
+            </intent-filter>
+        </activity>
+
+    </application>
+
+</manifest>
