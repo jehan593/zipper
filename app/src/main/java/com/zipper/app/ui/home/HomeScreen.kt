@@ -8,7 +8,9 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -30,19 +32,19 @@ fun HomeScreen(onCreateArchive: () -> Unit, onExtractArchive: () -> Unit) {
             modifier = Modifier
                 .padding(padding)
                 .fillMaxSize()
-                .padding(24.dp),
-            verticalArrangement = Arrangement.spacedBy(16.dp, Alignment.CenterVertically)
+                .padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp, Alignment.CenterVertically)
         ) {
             ActionCard(
                 iconRes = R.drawable.ic_archive,
                 title = "Create Archive",
-                subtitle = "Pick files and folders, choose a format, optionally add a password",
+                subtitle = "Pack files and folders, with an optional password",
                 onClick = onCreateArchive
             )
             ActionCard(
                 iconRes = R.drawable.ic_unarchive,
                 title = "Extract Archive",
-                subtitle = "Unpack a ZIP, 7z, RAR, or TAR.GZ file to a folder you choose",
+                subtitle = "Unpack an archive to a folder you choose",
                 onClick = onExtractArchive
             )
         }
@@ -54,11 +56,13 @@ private fun ActionCard(iconRes: Int, title: String, subtitle: String, onClick: (
     Card(
         modifier = Modifier
             .fillMaxWidth()
-            .clickable(onClick = onClick)
+            .clickable(onClick = onClick),
+        shape = RoundedCornerShape(12.dp),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
     ) {
         Row(
             modifier = Modifier
-                .padding(20.dp)
+                .padding(16.dp)
                 .fillMaxWidth(),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(16.dp)
@@ -66,14 +70,14 @@ private fun ActionCard(iconRes: Int, title: String, subtitle: String, onClick: (
             Icon(
                 painterResource(iconRes),
                 contentDescription = null,
-                modifier = Modifier.size(40.dp),
+                modifier = Modifier.size(36.dp),
                 tint = MaterialTheme.colorScheme.primary
             )
             Column {
                 Text(title, style = MaterialTheme.typography.titleLarge)
                 Text(
                     subtitle,
-                    style = MaterialTheme.typography.bodyMedium,
+                    style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }

@@ -1,16 +1,32 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- A folded archive/zipper-bag glyph: a document outline with a zigzag "zipper" seam down the
-     middle, kept within the ~66dp adaptive-icon safe zone. -->
 <vector xmlns:android="http://schemas.android.com/apk/res/android"
     android:width="108dp"
     android:height="108dp"
     android:viewportWidth="108"
     android:viewportHeight="108">
-    <path
-        android:fillColor="#88C0D0"
-        android:fillType="evenOdd"
-        android:pathData="
-            M39,28 h30 a6,6 0 0,1 6,6 v40 a6,6 0 0,1 -6,6 h-30 a6,6 0 0,1 -6,-6 v-40 a6,6 0 0,1 6,-6 Z
-            M45,28 v52
-            M45,34 l9,6 l-9,6 l9,6 l-9,6 l9,6 l-9,6 l9,6" />
+    <!-- Leave room around the artwork for different launcher icon shapes. -->
+    <group
+        android:pivotX="54"
+        android:pivotY="54"
+        android:scaleX="0.88"
+        android:scaleY="0.88">
+        <path
+            android:fillColor="#81A1C1"
+            android:pathData="M30,33 H44 L50,39 H76 Q80,39 80,43 V70 Q80,76 74,76 H34 Q28,76 28,70 V37 Q28,33 30,33 Z" />
+        <path
+            android:fillColor="#232831"
+            android:fillAlpha="0.3"
+            android:pathData="M28,49 H80 V73 Q80,79 74,79 H34 Q28,79 28,73 Z" />
+        <path
+            android:fillColor="#88C0D0"
+            android:pathData="M28,46 Q28,43 31,43 H77 Q80,43 80,46 V70 Q80,76 74,76 H34 Q28,76 28,70 Z" />
+        <path android:fillColor="#3B4252" android:pathData="M53,43 H63 V76 H53 Z" />
+        <path
+            android:fillColor="#ECEFF4"
+            android:pathData="M54,44 H58 V47 H54 Z M58,48 H62 V51 H58 Z M54,52 H58 V55 H54 Z M58,56 H62 V59 H58 Z" />
+        <path
+            android:fillColor="#ECEFF4"
+            android:fillType="evenOdd"
+            android:pathData="M55,61 H61 L64,70 Q64,73 61,73 H55 Q52,73 52,70 Z M56,65 L55,70 H61 L60,65 Z" />
+    </group>
 </vector>

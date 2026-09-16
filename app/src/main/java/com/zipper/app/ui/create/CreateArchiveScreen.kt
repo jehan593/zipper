@@ -11,11 +11,13 @@ import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExposedDropdownMenuBox
@@ -79,13 +81,7 @@ fun CreateArchiveScreen(onBack: () -> Unit, viewModel: CreateArchiveViewModel = 
             )
         }
     ) { padding ->
-        // A single LazyColumn for the whole form (not a Column with a separately-scrolling
-        // LazyColumn nested inside it for just the source list) plus imePadding(): targeting
-        // SDK 35 means the system no longer physically shrinks the window for the keyboard the
-        // way windowSoftInputMode="adjustResize" used to (edge-to-edge is enforced by default at
-        // that target level) — Compose has to reserve the keyboard's own space itself, and having
-        // every field share one scrollable list is what guarantees a focused field can always be
-        // scrolled back into view above the keyboard, regardless of screen size.
+        // Keep the whole form scrollable so focused fields stay above the keyboard.
         LazyColumn(
             modifier = Modifier
                 .padding(padding)
@@ -110,7 +106,7 @@ fun CreateArchiveScreen(onBack: () -> Unit, viewModel: CreateArchiveViewModel = 
             if (uiState.sources.isEmpty()) {
                 item {
                     Text(
-                        "Nothing selected yet — add files or a folder to archive.",
+                        "Add files or a folder to get started.",
                         style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
@@ -191,7 +187,7 @@ fun CreateArchiveScreen(onBack: () -> Unit, viewModel: CreateArchiveViewModel = 
         is OperationStatus.InProgress -> ProgressDialog(status, "Creating archive")
         is OperationStatus.Success, is OperationStatus.Failure -> ResultDialog(
             status = status,
-            successMessage = "Archive created successfully.",
+            successMessage = "Archive created.",
             onDismiss = viewModel::dismissResult
         )
         OperationStatus.Idle -> Unit
@@ -200,7 +196,11 @@ fun CreateArchiveScreen(onBack: () -> Unit, viewModel: CreateArchiveViewModel = 
 
 @Composable
 private fun SourceRow(source: PickedSource, onRemove: () -> Unit) {
-    Card(modifier = Modifier.fillMaxWidth()) {
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(12.dp),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
+    ) {
         Row(
             modifier = Modifier
                 .padding(horizontal = 12.dp, vertical = 8.dp)

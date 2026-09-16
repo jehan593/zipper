@@ -2,7 +2,9 @@ package com.zipper.app.ui.components
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Button
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -18,6 +20,8 @@ fun PasswordPromptDialog(isError: Boolean, onSubmit: (String) -> Unit, onDismiss
     var password by remember { mutableStateOf("") }
     AlertDialog(
         onDismissRequest = onDismiss,
+        shape = RoundedCornerShape(12.dp),
+        containerColor = MaterialTheme.colorScheme.surface,
         title = { Text("Password required") },
         text = {
             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -28,7 +32,7 @@ fun PasswordPromptDialog(isError: Boolean, onSubmit: (String) -> Unit, onDismiss
             }
         },
         confirmButton = {
-            TextButton(onClick = { onSubmit(password) }, enabled = password.isNotEmpty()) { Text("Unlock") }
+            Button(onClick = { onSubmit(password) }, enabled = password.isNotEmpty()) { Text("Unlock") }
         },
         dismissButton = { TextButton(onClick = onDismiss) { Text("Cancel") } }
     )
