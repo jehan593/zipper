@@ -12,11 +12,13 @@ import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -41,12 +43,7 @@ import com.zipper.app.ui.components.ResultDialog
 import kotlin.math.ln
 import kotlin.math.pow
 
-/**
- * A Dialog rather than plain full-screen content — this is reused two ways: as the entire content
- * of the translucent ArchivePreviewActivity (tapping an archive elsewhere on the device) and as an
- * in-app overlay on top of Home (the Extract Archive action). A Dialog gives both call sites the
- * same scrim/dismiss/back behavior for free instead of each needing its own.
- */
+/** A dialog keeps the preview consistent when opened here or from another app. */
 @Composable
 fun ArchivePreviewScreen(
     viewModel: ArchivePreviewViewModel,
@@ -59,18 +56,21 @@ fun ArchivePreviewScreen(
         onDismissRequest = onDismiss,
         properties = DialogProperties(dismissOnBackPress = false, usePlatformDefaultWidth = false)
     ) {
-        // Back navigates up a folder first, only closing the popup once already at the root —
-        // dismissOnBackPress is off above specifically so this can intercept it first.
+        // Handle Back here so it goes up a folder before closing the preview.
         BackHandler { if (!viewModel.navigateUp()) onDismiss() }
 
         Box(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(24.dp),
+                .padding(16.dp),
             contentAlignment = Alignment.Center
         ) {
-            Card(modifier = Modifier.fillMaxWidth()) {
-                Column(modifier = Modifier.padding(16.dp)) {
+            Card(
+                modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(12.dp),
+                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
+            ) {
+                Column(modifier = Modifier.padding(12.dp)) {
                     Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                         if (uiState.currentPath.isNotEmpty()) {
                             IconButton(onClick = { viewModel.navigateUp() }) {
@@ -139,13 +139,10 @@ fun ArchivePreviewScreen(
     val status = uiState.status
     when (status) {
         is OperationStatus.InProgress -> ProgressDialog(status, uiState.progressLabel)
-        is OperationStatus.Success -> ResultDialog(status, "Archive extracted successfully.", onDismiss = onDismiss)
+        is OperationStatus.Success -> ResultDialog(status, "Archive extracted.", onDismiss = onDismiss)
         is OperationStatus.Failure -> ResultDialog(
             status, "",
-            // A failure before the archive was ever successfully opened (e.g. an unrecognized
-            // file type) leaves nothing browsable behind it — OK should close the whole popup
-            // rather than reveal an empty, dead card. A failure *during* extraction of an
-            // already-open archive just clears the error so the user can retry.
+            // Close an unreadable archive; keep an open archive available for a retry.
             onDismiss = { if (uiState.readyToExtract) viewModel.dismissResult() else onDismiss() }
         )
         OperationStatus.Idle -> Unit

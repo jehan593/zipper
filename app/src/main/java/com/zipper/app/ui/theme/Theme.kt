@@ -1,27 +1,20 @@
 package com.zipper.app.ui.theme
 
 import androidx.compose.foundation.isSystemInDarkTheme
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Shapes
 import androidx.compose.material3.darkColorScheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.unit.dp
 
-// Nord is fundamentally a dark, arctic-bluish palette; dynamic color is deliberately disabled so
-// the app keeps a fixed Nord identity regardless of the device wallpaper (matches noter/linker).
-//
-// Every role below is filled in explicitly, including the newer M3 "surface container" tiers
-// (surfaceContainer*/surfaceDim/surfaceBright) and the *Container roles for secondary/tertiary/
-// error. Leaving any of those out doesn't leave a gap — darkColorScheme()/lightColorScheme() quietly
-// substitute Material's own baseline (purple-tinted) defaults for whichever ones aren't passed. Card
-// and AlertDialog specifically read their background from surfaceContainerLow/surfaceContainerHigh,
-// not from `surface`, so without these the archive-preview popup's Card would look visibly off-Nord
-// even though the rest of the screen (background, text, primary accents) was correct.
-//
-// In the dark scheme, the container tiers are kept at nord0/nord1 (never nord3) specifically so
-// they stay clearly darker than `outline` (nord3) — same reasoning as linker's Theme.kt.
+// Use fixed Nord colors so the wallpaper cannot change the app palette.
+// Set every color role to avoid Material defaults on cards and dialogs.
+// Keep dark surfaces darker than outlines so borders remain visible.
 
 private val NordDarkColorScheme = darkColorScheme(
-    primary = nord8,
+    primary = nord9,
     onPrimary = nord0,
     primaryContainer = nord10,
     onPrimaryContainer = nord6,
@@ -39,7 +32,7 @@ private val NordDarkColorScheme = darkColorScheme(
     onSurface = nord4,
     surfaceVariant = nord2,
     onSurfaceVariant = nord4,
-    surfaceTint = nord8,
+    surfaceTint = nord9,
     surfaceDim = nord0,
     surfaceBright = nord2,
     surfaceContainerLowest = nord0,
@@ -59,9 +52,9 @@ private val NordDarkColorScheme = darkColorScheme(
 )
 
 private val NordLightColorScheme = lightColorScheme(
-    primary = nord10,
-    onPrimary = nord6,
-    primaryContainer = nord8,
+    primary = nord9,
+    onPrimary = nord0,
+    primaryContainer = nord9,
     onPrimaryContainer = nord0,
     secondary = nord7,
     onSecondary = nord0,
@@ -77,7 +70,7 @@ private val NordLightColorScheme = lightColorScheme(
     onSurface = nord1,
     surfaceVariant = nord4,
     onSurfaceVariant = nord1,
-    surfaceTint = nord10,
+    surfaceTint = nord9,
     surfaceDim = nord4,
     surfaceBright = nord6,
     surfaceContainerLowest = nord6,
@@ -96,6 +89,13 @@ private val NordLightColorScheme = lightColorScheme(
     inversePrimary = nord8
 )
 
+private val ZipperShapes = Shapes(
+    small = RoundedCornerShape(8.dp),
+    medium = RoundedCornerShape(12.dp),
+    large = RoundedCornerShape(16.dp),
+    extraLarge = RoundedCornerShape(28.dp)
+)
+
 @Composable
 fun ZipperTheme(
     darkTheme: Boolean = isSystemInDarkTheme(),
@@ -104,6 +104,7 @@ fun ZipperTheme(
     MaterialTheme(
         colorScheme = if (darkTheme) NordDarkColorScheme else NordLightColorScheme,
         typography = ZipperTypography,
+        shapes = ZipperShapes,
         content = content
     )
 }
