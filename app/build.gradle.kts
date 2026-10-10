@@ -85,6 +85,7 @@ android {
 }
 
 dependencies {
+    testImplementation("junit:junit:4.13.2")
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
     implementation(libs.androidx.lifecycle.viewmodel.compose)
@@ -112,4 +113,9 @@ dependencies {
     // Ships under a custom "UnRAR license" rather than Apache/MIT, unlike every other dependency
     // here: free to use for extraction, but forbids using it to build a RAR-compatible archiver.
     implementation(libs.junrar)
+}
+
+// Limit test memory so buffering the 300 MiB entry would fail.
+tasks.withType<org.gradle.api.tasks.testing.Test>().configureEach {
+    maxHeapSize = "128m"
 }

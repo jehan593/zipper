@@ -1,5 +1,8 @@
 package com.zipper.app.ui.create
 
+import android.app.Activity
+import android.content.Intent
+import android.net.Uri
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Arrangement
@@ -32,6 +35,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -53,9 +57,22 @@ import com.zipper.app.ui.components.ResultDialog
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun CreateArchiveScreen(onBack: () -> Unit, viewModel: CreateArchiveViewModel = viewModel()) {
+fun CreateArchiveScreen(
+    onBack: () -> Unit,
+    onCreated: (Uri, String) -> Unit,
+    viewModel: CreateArchiveViewModel = viewModel()
+) {
     val context = LocalContext.current
     val uiState by viewModel.uiState.collectAsState()
+
+    LaunchedEffect(uiState.status) {
+        if (uiState.status == OperationStatus.Success) {
+            val uri = uiState.createdUri ?: return@LaunchedEffect
+            val name = uiState.createdFileName ?: uiState.suggestedFileName
+            viewModel.resetAfterSuccess()
+            onCreated(uri, name)
+        }
+    }
 
     val addFilesLauncher = rememberLauncherForActivityResult(ActivityResultContracts.OpenMultipleDocuments()) { uris ->
         if (uris.isNotEmpty()) viewModel.addFiles(context, uris)
@@ -64,9 +81,12 @@ fun CreateArchiveScreen(onBack: () -> Unit, viewModel: CreateArchiveViewModel = 
         if (uri != null) viewModel.addFolder(context, uri)
     }
     val createDocumentLauncher = rememberLauncherForActivityResult(
-        ActivityResultContracts.CreateDocument("application/octet-stream")
-    ) { destination ->
-        if (destination != null) viewModel.createArchive(context, destination)
+        ActivityResultContracts.StartActivityForResult()
+    ) { result ->
+        val destination = result.data?.data
+        if (result.resultCode == Activity.RESULT_OK && destination != null) {
+            viewModel.createArchive(context, destination)
+        }
     }
 
     Scaffold(
@@ -172,7 +192,15 @@ fun CreateArchiveScreen(onBack: () -> Unit, viewModel: CreateArchiveViewModel = 
 
             item {
                 Button(
-                    onClick = { createDocumentLauncher.launch(uiState.suggestedFileName) },
+                    onClick = {
+                        createDocumentLauncher.launch(
+                            Intent(Intent.ACTION_CREATE_DOCUMENT).apply {
+                                addCategory(Intent.CATEGORY_OPENABLE)
+                                type = uiState.format.mimeType
+                                putExtra(Intent.EXTRA_TITLE, uiState.suggestedFileName)
+                            }
+                        )
+                    },
                     enabled = uiState.sources.isNotEmpty() && uiState.archiveName.isNotBlank(),
                     modifier = Modifier.fillMaxWidth()
                 ) {
@@ -185,12 +213,12 @@ fun CreateArchiveScreen(onBack: () -> Unit, viewModel: CreateArchiveViewModel = 
     val status = uiState.status
     when (status) {
         is OperationStatus.InProgress -> ProgressDialog(status, "Creating archive")
-        is OperationStatus.Success, is OperationStatus.Failure -> ResultDialog(
+        is OperationStatus.Failure -> ResultDialog(
             status = status,
             successMessage = "Archive created.",
             onDismiss = viewModel::dismissResult
         )
-        OperationStatus.Idle -> Unit
+        OperationStatus.Idle, OperationStatus.Success -> Unit
     }
 }
 

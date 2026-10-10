@@ -39,10 +39,17 @@ class StagedArchive private constructor(
             val format = ArchiveFormat.detect(name) ?: return null
             val dir = newStagingRun(context)
             val file = File(dir, "archive.${format.extension}")
-            context.contentResolver.openInputStream(uri)?.use { input ->
-                file.outputStream().use { output -> input.copyTo(output) }
+            try {
+                val input = context.contentResolver.openInputStream(uri)
+                    ?: error("Couldn't open the selected archive")
+                input.use {
+                    file.outputStream().use { output -> it.copyTo(output) }
+                }
+                return StagedArchive(name, format, file, dir)
+            } catch (e: Exception) {
+                dir.deleteRecursively()
+                throw e
             }
-            return StagedArchive(name, format, file, dir)
         }
     }
 }

@@ -23,6 +23,8 @@ data class CreateArchiveUiState(
     val format: ArchiveFormat = ArchiveFormat.ZIP,
     val password: String = "",
     val archiveName: String = "Archive",
+    val createdUri: Uri? = null,
+    val createdFileName: String? = null,
     val status: OperationStatus = OperationStatus.Idle
 ) {
     val suggestedFileName: String get() = "$archiveName.${format.extension}"
@@ -40,12 +42,13 @@ class CreateArchiveViewModel : ViewModel() {
             val name = DocumentFile.fromSingleUri(context, uri)?.name ?: return@mapNotNull null
             PickedSource(uri, name, isTree = false)
         }
-        _uiState.update { it.copy(sources = it.sources + added) }
+        _uiState.update { it.copy(sources = (it.sources + added).distinctBy { source -> source.uri.toString() }) }
     }
 
     fun addFolder(context: Context, treeUri: Uri) {
         val name = DocumentFile.fromTreeUri(context, treeUri)?.name ?: return
-        _uiState.update { it.copy(sources = it.sources + PickedSource(treeUri, name, isTree = true)) }
+        _uiState.update { it.copy(sources = (it.sources + PickedSource(treeUri, name, isTree = true))
+            .distinctBy { source -> source.uri.toString() }) }
     }
 
     fun removeSource(source: PickedSource) {
@@ -62,6 +65,10 @@ class CreateArchiveViewModel : ViewModel() {
 
     fun setArchiveName(name: String) {
         _uiState.update { it.copy(archiveName = name) }
+    }
+
+    fun resetAfterSuccess() {
+        _uiState.value = CreateArchiveUiState()
     }
 
     fun dismissResult() {
@@ -91,7 +98,11 @@ class CreateArchiveViewModel : ViewModel() {
                     outputFile.inputStream().use { input -> input.copyTo(out) }
                 } ?: error("Couldn't open the chosen destination")
 
-                _uiState.update { it.copy(status = OperationStatus.Success) }
+                val savedName = runCatching {
+                    DocumentFile.fromSingleUri(context, destination)?.name
+                }.getOrNull() ?: state.suggestedFileName
+                _uiState.update { it.copy(status = OperationStatus.Success,
+                    createdUri = destination, createdFileName = savedName) }
             } catch (e: Exception) {
                 _uiState.update { it.copy(status = OperationStatus.Failure(e.message ?: "Couldn't create the archive")) }
             } finally {
