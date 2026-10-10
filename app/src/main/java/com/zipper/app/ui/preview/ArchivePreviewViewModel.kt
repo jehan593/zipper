@@ -13,6 +13,7 @@ import com.zipper.app.archive.StagedArchive
 import com.zipper.app.archive.childrenAt
 import com.zipper.app.archive.saf.SafExtractionTarget
 import com.zipper.app.ui.components.OperationStatus
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -41,26 +42,48 @@ class ArchivePreviewViewModel : ViewModel() {
     private var staged: StagedArchive? = null
 
     fun open(context: Context, uri: Uri) {
-        cleanup()
-        val archive = StagedArchive.stage(context, uri)
-        if (archive == null) {
-            _uiState.value = ArchivePreviewUiState(status = OperationStatus.Failure("Unrecognized archive type"))
-            return
-        }
-        staged = archive
         _uiState.value = ArchivePreviewUiState(
-            archiveName = archive.archiveName,
-            format = archive.format,
-            progressLabel = "Reading archive",
+            progressLabel = "Copying archive",
             status = OperationStatus.InProgress(0, 0)
         )
-        viewModelScope.launch(Dispatchers.IO) { applyOpenResult(archive.tryOpen(null)) }
+        viewModelScope.launch(Dispatchers.IO) {
+            try {
+                cleanup()
+                val archive = StagedArchive.stage(context, uri)
+                    ?: error("Unrecognized archive type")
+                staged = archive
+                _uiState.update {
+                    it.copy(archiveName = archive.archiveName, format = archive.format,
+                        progressLabel = "Reading archive")
+                }
+                applyOpenResult(archive.tryOpen(null))
+            } catch (e: CancellationException) {
+                throw e
+            } catch (e: Exception) {
+                showOpenFailure(e)
+            }
+        }
     }
 
     fun submitPassword(password: String) {
         val archive = staged ?: return
-        _uiState.update { it.copy(progressLabel = "Checking password", status = OperationStatus.InProgress(0, 0)) }
-        viewModelScope.launch(Dispatchers.IO) { applyOpenResult(archive.tryOpen(password.toCharArray())) }
+        _uiState.update { it.copy(passwordPromptVisible = false,
+            progressLabel = "Checking password. Large files may take a while.",
+            status = OperationStatus.InProgress(0, 0)) }
+        viewModelScope.launch(Dispatchers.IO) {
+            try {
+                applyOpenResult(archive.tryOpen(password.toCharArray()))
+            } catch (e: CancellationException) {
+                throw e
+            } catch (e: Exception) {
+                showOpenFailure(e)
+            }
+        }
+    }
+
+    private fun showOpenFailure(e: Exception) {
+        _uiState.update { it.copy(passwordPromptVisible = false,
+            status = OperationStatus.Failure(e.message ?: "Couldn't read the archive")) }
     }
 
     private fun applyOpenResult(result: ArchiveOpenResult) {
@@ -84,7 +107,7 @@ class ArchivePreviewViewModel : ViewModel() {
                 it.copy(passwordPromptVisible = true, passwordError = true, status = OperationStatus.Idle)
             }
             is ArchiveOpenResult.Error -> _uiState.update {
-                it.copy(status = OperationStatus.Failure(result.message))
+                it.copy(passwordPromptVisible = false, status = OperationStatus.Failure(result.message))
             }
         }
     }

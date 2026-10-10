@@ -4,11 +4,11 @@ import com.zipper.app.archive.ArchiveEntryInfo
 import com.zipper.app.archive.ArchiveOpenResult
 import com.zipper.app.archive.ArchiveReader
 import com.zipper.app.archive.saf.SafExtractionTarget
+import java.io.File
+import java.io.OutputStream
 import net.lingala.zip4j.ZipFile
 import net.lingala.zip4j.exception.ZipException
 import net.lingala.zip4j.model.FileHeader
-import java.io.ByteArrayOutputStream
-import java.io.File
 
 class ZipReader private constructor(private val zipFile: ZipFile) : ArchiveReader {
 
@@ -53,12 +53,22 @@ class ZipReader private constructor(private val zipFile: ZipFile) : ArchiveReade
                     // zip4j doesn't validate the password until an entry is actually decompressed —
                     // probe-decode the smallest entry so a wrong password surfaces now instead of
                     // partway through extractAll().
-                    val probe = headers.filterNot { it.isDirectory }.minByOrNull { it.uncompressedSize }
+                    val probe = headers.filter { !it.isDirectory && it.isEncrypted }.minByOrNull { it.uncompressedSize }
                     if (probe != null) {
                         try {
-                            zipFile.getInputStream(probe).use { it.copyTo(ByteArrayOutputStream()) }
+                            zipFile.getInputStream(probe).use { input ->
+                                // Read to the end to verify the password without keeping the file in memory.
+                                input.copyTo(object : OutputStream() {
+                                    override fun write(value: Int) = Unit
+                                    override fun write(buffer: ByteArray, offset: Int, length: Int) = Unit
+                                }, bufferSize = 64 * 1024)
+                            }
                         } catch (e: ZipException) {
-                            return ArchiveOpenResult.WrongPassword
+                            return if (e.type == ZipException.Type.WRONG_PASSWORD) {
+                                ArchiveOpenResult.WrongPassword
+                            } else {
+                                ArchiveOpenResult.Error(e.message ?: "Couldn't verify ZIP entry")
+                            }
                         }
                     }
                 }
