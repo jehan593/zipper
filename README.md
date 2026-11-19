@@ -6,7 +6,7 @@
 
 An offline Android app for creating, previewing, and extracting archives.
 
-> FYI: This project is fully vibe coded.
+> **FYI:** This project is fully vibe coded for my personal use and taste. It's shared publicly in case it's useful to you. Feel free to fork it and adapt it to your needs.
 
 ## Features
 
